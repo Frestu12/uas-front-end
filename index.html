@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perpustakaan</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+
+<body>
+    <div class="modern-form">
+        <h2>Formulir Pendataan Buku</h2>
+        <div class="form-group">
+          <label for="judul">Judul:</label>
+          <input type="text" id="judul" judul="judul" required>
+        </div>
+        <div class="form-group">
+          <label for="penulis">Penulis:</label>
+          <input type="text" id="penulis" name="penulis" required>
+        </div>
+        <div class="form-group">
+          <label for="penerbit">Penerbit:</label>
+          <input type="text" id="penerbit" name="penerbit" required>
+        </div>
+        <div class="form-group">
+            <label for="tahun_terbit">Tahun Terbit:</label>
+            <input type="number" id="tahun_terbit" name="tahun_terbit" required>
+          </div>
+          <div class="form-group">
+            <label for="harga">Harga:</label>
+            <input type="number" id="harga" name="harga" required>
+          </div>
+          <div class="form-group">
+            <label for="stok">Stok:</label>
+            <input type="number" id="stok" name="stok" required>
+          </div>
+        <button type="submit" class="btn-submit" id="btn_submit">Simpan</button>
+    </div>
+      
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Judul</th>
+            <th>Penulis</th>
+            <th>Penerbit</th>
+            <th>Tahun Terbit</th>
+            <th>Harga</th>
+            <th>Stok</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="result">
+        </tbody>
+      </table>
+      
+      <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const getData = async () => {
+            await axios.get(`http://103.163.110.11:3031/books`)
+                .then((response) => {
+                    let bucket = ``;
+                    let books = response.data;
+                    for (let i = 0; i < books.length; i++) {
+                        bucket += `
+                      <tr>
+                          <td>${i + 1}</td>
+                          <td>${books[i].judul}</td>
+                          <td>${books[i].penulis}</td>
+                          <td>${books[i].penerbit}</td>
+                          <td>${books[i].tahun_terbit}</td>
+                          <td>${books[i].harga}</td>
+                          <td>${books[i].stok}</td>
+                          <td><button class="btn-edit" id="btn_edit" onclick="editData('${books[i].id}','${books[i].judul}','${books[i].penulis}',
+                              '${books[i].penerbit}','${books[i].tahun_terbit}','${books[i].harga}','${books[i].stok}')">Edit</button>
+                              <button class="btn-delete" id="btn_hapus" onclick="deleteData('${books[i].id}')">Delete</button></td>
+                      </tr>
+                      `
+                    }
+                    document.getElementById('result').innerHTML = bucket;
+                })
+                .catch((error) => {
+                    console.log(error.message);
+                    let bucket = `
+                  <tr>
+                      <td colspan="4">${error.message}</td>
+                  </tr>
+                  `;
+                    document.getElementById('result').innerHTML = bucket;
+                });
+        }
+        getData();
+
+        const editData = (id, judul, penulis, penerbit, tahun_terbit, harga, stok) => {
+            document.getElementById('judul').value = judul;
+            document.getElementById('penulis').value = penulis;
+            document.getElementById('penerbit').value = penerbit;
+            document.getElementById('tahun_terbit').value = tahun_terbit;
+            document.getElementById('harga').value = harga;
+            document.getElementById('stok').value = stok;
+            document.getElementById('btn_submit').innerText = 'Ubah';
+            document.getElementById('btn_submit').setAttribute('onclick', `updateData(${id})`);
+        }
+
+        const updateData = async (id) => {
+            let judulform = document.getElementById('judul').value;
+            let penulisform = document.getElementById('penulis').value;
+            let penerbitform = document.getElementById('penerbit').value;
+            let tahun_terbitform = document.getElementById('tahun_terbit').value;
+            let hargaform = document.getElementById('harga').value;
+            let stokform = document.getElementById('stok').value;
+            let text = "Betul data akan diubah ?"
+            if (confirm(text) == true) {
+                await axios.patch(`http://103.163.110.11:3031/books/${id}`, {
+                    judul: judulform,
+                    penulis: penulisform,
+                    penerbit: penerbitform,
+                    tahun_terbit: tahun_terbitform,
+                    harga: hargaform,
+                    stok: stokform
+                })
+                    .then((response) => {
+                        getData();
+                        alert("Data Berhasil Diubah");
+                        document.getElementById('judul').value = '';
+                    document.getElementById('penulis').value = '';
+                    document.getElementById('penerbit').value = '';
+                    document.getElementById('tahun_terbit').value = '';
+                    document.getElementById('harga').value = '';
+                    document.getElementById('stok').value = '';
+                        console.log(response);
+                    })
+                    .catch((error) => {
+                        console.log(error.message);
+                    });
+            }
+        }
+
+        const saveData = async () => {
+            let judulform = document.getElementById('judul').value;
+            let penulisform = document.getElementById('penulis').value;
+            let penerbitform = document.getElementById('penerbit').value;
+            let tahun_terbitform = document.getElementById('tahun_terbit').value;
+            let hargaform = document.getElementById('harga').value;
+            let stokform = document.getElementById('stok').value;
+            await axios.post(`http://103.163.110.11:3031/books`, {
+                judul: judulform,
+                    penulis: penulisform,
+                    penerbit: penerbitform,
+                    tahun_terbit: tahun_terbitform,
+                    harga: hargaform,
+                    stok: stokform
+            })
+                .then((response) => {
+                    getData();
+                    alert("Data berhasil ditambahkan");
+                    document.getElementById('judul').value = '';
+                    document.getElementById('penulis').value = '';
+                    document.getElementById('penerbit').value = '';
+                    document.getElementById('tahun_terbit').value = '';
+                    document.getElementById('harga').value = '';
+                    document.getElementById('stok').value = '';
+                    console.log('Berhasil Ditambahkan');
+                })
+                .catch((error) => {
+                    console.log(error.message);
+                });
+        }
+
+        const deleteData = async (id) => {
+            let text = "Betul data akan dihapus ?"
+            if (confirm(text) == true) {
+                await axios.delete(`http://103.163.110.11:3031/books/${id}`)
+                    .then((response) => {
+                        getData();
+                        alert("Data Berhasil Dihapus");
+                        console.log(response);
+                    })
+                    .catch((error) => {
+                        console.log(error.message);
+                    })
+            }
+        }
+    </script>
+</body>
+
+</html>
